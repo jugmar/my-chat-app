@@ -17,7 +17,7 @@ if (userRows.length === 0) {
 const user = userRows[0];
 
 // Fetch rooms
-const allRooms = await db.select().from(rooms).all();
+const allRooms = await db.select().from(rooms);
 const roomId = Astro.params.roomId;
 const currentRoom = allRooms.find(r => r.id === roomId);
 

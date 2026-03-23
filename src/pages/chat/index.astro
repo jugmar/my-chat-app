@@ -3,7 +3,7 @@ import { db } from '../../db';
 import { rooms } from '../../db/schema';
 import { v4 as uuidv4 } from 'uuid';
 
-let allRooms = await db.select().from(rooms).all();
+let allRooms = await db.select().from(rooms);
 
 if (allRooms.length === 0) {
   const lobbyId = uuidv4();
