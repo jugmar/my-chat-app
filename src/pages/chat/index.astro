@@ -73,4 +73,16 @@ if (allRooms.length === 0) {
       </div>
     </main>
   </div>
+  
+  <script is:inline define:vars={{ firstRoomId: allRooms[0]?.id }}>
+    function enforceLayout() {
+      if (firstRoomId && window.innerWidth >= 768) {
+        window.location.replace(`/chat/${firstRoomId}`);
+      }
+    }
+    // Check immediately on load
+    enforceLayout();
+    // Re-check live as the window scales
+    window.addEventListener('resize', enforceLayout);
+  </script>
 </Layout>
