@@ -12,6 +12,7 @@ export async function GET(context) {
   
   try {
     await client.connect();
+    
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id text PRIMARY KEY,
@@ -19,11 +20,17 @@ export async function GET(context) {
         last_seen timestamp NOT NULL,
         created_at timestamp NOT NULL
       );
+    `);
+    
+    await client.query(`
       CREATE TABLE IF NOT EXISTS rooms (
         id text PRIMARY KEY,
         name text NOT NULL,
         created_at timestamp NOT NULL
       );
+    `);
+    
+    await client.query(`
       CREATE TABLE IF NOT EXISTS messages (
         id text PRIMARY KEY,
         room_id text NOT NULL,
@@ -32,6 +39,9 @@ export async function GET(context) {
         is_system_message boolean DEFAULT false,
         created_at timestamp NOT NULL
       );
+    `);
+    
+    await client.query(`
       CREATE TABLE IF NOT EXISTS notifications (
         id text PRIMARY KEY,
         user_id text NOT NULL,
