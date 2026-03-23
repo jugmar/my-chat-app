@@ -1,6 +1,4 @@
 import postgres from 'postgres';
-import dns from 'node:dns';
-dns.setDefaultResultOrder('ipv4first');
 
 export async function GET(context: any) {
   if (!process.env.DATABASE_URL) {
@@ -55,10 +53,10 @@ export async function GET(context: any) {
       await sql.unsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen timestamp NOT NULL DEFAULT now();`);
     } catch(e) {}
     
-    await postgres.js();
+    await sql.end();
     return new Response(JSON.stringify({ success: "Postgres Tables Created Successfully! You can now use the app." }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch(e: any) {
-    await postgres.js();
+    await sql.end();
     return new Response(JSON.stringify({ error: e.message || String(e), stack: e.stack }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
