@@ -5,4 +5,4 @@ nixPkgs = ["nodejs_22"]
 cmds = ["npm install", "npm run build"]
 
 [phases.start]
-cmd = "npm run start"
+cmd = "node migrate.js && npm run start"
