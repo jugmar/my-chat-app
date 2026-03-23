@@ -3,6 +3,7 @@ import { db } from '../../../../db';
 import { messages, users, notifications } from '../../../../db/schema';
 import { v4 as uuidv4 } from 'uuid';
 import { chatEmitter } from '../../../../lib/emitter';
+import { getUserColor } from '../../../../lib/color';
 import { eq } from 'drizzle-orm';
 
 export const POST: APIRoute = async ({ params, request, cookies }) => {
@@ -73,8 +74,6 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
         });
         chatEmitter.emit(`user:${targetUserId}:notification`, '{}');
       }
-
-import { getUserColor } from '../../../../lib/color';
 
 // ... (in the backend request logic)
       const color = getUserColor(userId);
