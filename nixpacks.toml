@@ -5,4 +5,4 @@ nixPkgs = ["nodejs_22"]
 cmds = ["npm install", "npm run build"]
 
 [phases.start]
-cmd = "npx drizzle-kit push --force && npm run start"
+cmd = "node create-tables.js && node ./dist/server/entry.mjs"
