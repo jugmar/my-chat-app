@@ -1,0 +1,32 @@
+{
+  "name": "chat-app",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node ./dist/server/entry.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^10.0.3",
+    "@tailwindcss/vite": "^4.2.2",
+    "astro": "^6.0.8",
+    "dotenv": "^17.3.1",
+    "drizzle-orm": "^0.45.1",
+    "htmx.org": "^2.0.8",
+    "pg": "^8.20.0",
+    "tailwindcss": "^4.2.2",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/pg": "^8.20.0",
+    "@types/uuid": "^10.0.0",
+    "drizzle-kit": "^0.31.10"
+  }
+}

@@ -1,0 +1,20 @@
+---
+import { db } from '../../db';
+import { rooms } from '../../db/schema';
+import { v4 as uuidv4 } from 'uuid';
+
+let allRooms = await db.select().from(rooms).all();
+
+if (allRooms.length === 0) {
+  const lobbyId = uuidv4();
+  await db.insert(rooms).values({
+    id: lobbyId,
+    name: 'Lobby',
+    createdAt: new Date(),
+  });
+  return Astro.redirect(`/chat/${lobbyId}`);
+} else {
+  // Redirect to first room (Lobby)
+  return Astro.redirect(`/chat/${allRooms[0].id}`);
+}
+---

@@ -1,0 +1,7 @@
+node_modules
+.git
+.tmp
+.env
+chat.db
+chat.db-journal
+drizzle/
