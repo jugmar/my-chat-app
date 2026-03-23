@@ -10,15 +10,20 @@ if (Astro.request.method === 'POST') {
   
   if (nickname && nickname.trim() !== '') {
     const id = uuidv4();
-    await db.insert(users).values({
-      id,
-      nickname,
-      lastSeen: new Date(),
-      createdAt: new Date(),
-    });
-    
-    Astro.cookies.set('userId', id, { path: '/', httpOnly: true, sameSite: 'lax' });
-    return Astro.redirect('/chat');
+    try {
+      await db.insert(users).values({
+        id,
+        nickname,
+        lastSeen: new Date(),
+        createdAt: new Date(),
+      });
+      
+      Astro.cookies.set('userId', id, { path: '/', httpOnly: true, sameSite: 'lax' });
+      return Astro.redirect('/chat');
+    } catch (e: any) {
+      console.error("DB INSERT ERROR:", e);
+      return new Response("POSTGRES ERROR: " + (e.message || String(e)), { status: 500 });
+    }
   }
 }
 ---
