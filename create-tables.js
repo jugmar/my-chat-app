@@ -1,15 +1,13 @@
-import pkg from 'pg';
-const { Client } = pkg;
+import postgres from 'postgres';
 
 async function run() {
   if (!process.env.DATABASE_URL) {
     console.log("No DATABASE_URL found. Skipping migration.");
     return;
   }
-  const client = new Client({ connectionString: process.env.DATABASE_URL });
+  const sql = postgres(process.env.DATABASE_URL);
   try {
-    await client.connect();
-    await client.query(`
+    await sql`
       CREATE TABLE IF NOT EXISTS users (
         id text PRIMARY KEY,
         nickname text NOT NULL UNIQUE,
@@ -39,14 +37,12 @@ async function run() {
         created_at timestamp NOT NULL
       );
       
-      -- Let's try to add the column if the table already existed from a partial migration
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen timestamp NOT NULL DEFAULT now();
-    `);
+    `;
     console.log('Postgres Tables Created Successfully');
   } catch(e) {
     console.error('Migration failed:', e);
   } finally {
-    await client.end();
+    await sql.end();
   }
 }
 run();
