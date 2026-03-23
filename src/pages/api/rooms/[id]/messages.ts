@@ -78,8 +78,9 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
       const initial = nickname.charAt(0).toUpperCase();
 
       const htmlSnippet = `
-<div id="new-msg-${msgId}" class="tmp-msg-wrapper hidden" data-msg-user-id="${userId}" data-nickname="${nickname}" data-time="${timeStr}" data-initial="${initial}">
-  <div class="message-content w-fit max-w-[85%] md:max-w-[75%] px-4 py-2 shadow-sm rounded-2xl message-bubble relative group">
+<div class="flex flex-col message-item items-start msg-wrapper-${userId} animate-fade-in-up" data-msg-user-id="${userId}">
+  <div class="max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm bg-slate-700 text-slate-100 rounded-bl-sm border border-slate-600 msg-bubble-${userId}">
+    <div class="text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname msg-nickname-${userId}">${nickname}</div>
     <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">${safeContent}</div>
   </div>
 </div>`;

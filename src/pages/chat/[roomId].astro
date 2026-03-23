@@ -154,105 +154,51 @@ const roomMessages = await db
     </main>
   </div>
   
-  <script is:inline>
+  <style define:vars={{ uid: user.id }}>
+    .msg-wrapper-var { align-items: flex-end !important; }
+    .msg-bubble-var { 
+      background-color: #2563eb !important; 
+      color: white !important; 
+      border: none !important; 
+      border-radius: 1rem 1rem 0 1rem !important; 
+    }
+    .msg-nickname-var { display: none !important; }
+  </style>
+
+  <script is:inline define:vars={{ uid: user.id }}>
+    // We apply the CSS variables dynamically here because Astro's style var injection maps exactly.
+    // Instead of using complex build strings, we just manually inject a stylesheet.
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .msg-wrapper-${uid} { align-items: flex-end !important; }
+      .msg-bubble-${uid} { background-color: #2563eb !important; color: white !important; border-bottom-left-radius: 1rem !important; border-bottom-right-radius: 0.125rem !important; border:none !important; }
+      .msg-nickname-${uid} { display: none !important; }
+    `;
+    document.head.appendChild(style);
+
     // Auto-scroll to bottom
     const messages = document.getElementById('chat-messages');
-    
     function scrollToBottom() {
-      if (messages) {
-        messages.scrollTop = messages.scrollHeight;
-      }
+      if (messages) messages.scrollTop = messages.scrollHeight;
     }
-    
-    // Initial scroll
     scrollToBottom();
     
-      // Setup mutation observer to process incoming generic SSE message elements and auto scroll
-      const observer = new MutationObserver((mutations) => {
-        let shouldScroll = false;
-        for (let m of mutations) {
-          m.addedNodes.forEach(node => {
-            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tmp-msg-wrapper')) {
-              shouldScroll = true;
-              
-              const wrapper = node;
-              const msgUserId = wrapper.dataset.msgUserId;
-              
-              const match = document.cookie.match(new RegExp('(^| )userId=([^;]+)'));
-              const myId = match ? match[2] : null;
-              const isSelf = myId === msgUserId;
-              
-              const timeStr = wrapper.dataset.time;
-              const nickname = wrapper.dataset.nickname;
-              const initial = wrapper.dataset.initial;
-              const safeContent = wrapper.querySelector('.break-words').innerHTML;
-              
-              const bubble = wrapper.querySelector('.message-bubble');
-              if (isSelf) {
-                bubble.classList.add('bg-blue-600', 'text-white', 'rounded-br-sm');
-              } else {
-                bubble.classList.add('bg-slate-700', 'text-slate-100', 'border', 'border-slate-600', 'rounded-bl-sm');
-              }
-              
-              const containers = document.querySelectorAll('#chat-messages .group-container');
-              const lastGroup = containers[containers.length - 1];
-              
-              if (lastGroup && lastGroup.dataset.msgUserId === msgUserId && lastGroup.dataset.isSystem !== "true") {
-                 const bubbleContainer = lastGroup.querySelector('.bubble-container');
-                 bubbleContainer.appendChild(bubble);
-                 wrapper.remove();
-              } else {
-                 const groupContainer = document.createElement('div');
-                 groupContainer.className = \`flex flex-col mb-4 group-container \${isSelf ? 'items-end' : 'items-start'}\`;
-                 groupContainer.dataset.msgUserId = msgUserId;
-                 groupContainer.dataset.isSystem = "false";
-                 
-                 const headerAlign = isSelf ? 'flex-row-reverse pr-1' : 'pl-1';
-                 const nameColor = isSelf ? 'text-slate-300' : 'text-blue-300';
-                 
-                 groupContainer.innerHTML = \`
-                    <div class="flex items-center gap-2 mb-1 \${headerAlign} header-info">
-                      <div class="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-xs text-white font-bold">\${initial}</div>
-                      <span class="text-xs font-semibold \${nameColor} msg-nickname">\${nickname}</span>
-                      <span class="text-[10px] text-slate-500">\${timeStr}</span>
-                    </div>
-                    <div class="flex flex-col gap-1 bubble-container \${isSelf ? 'items-end' : 'items-start'}">
-                    </div>
-                 \`;
-                 
-                 groupContainer.querySelector('.bubble-container').appendChild(bubble);
-                 wrapper.parentNode.insertBefore(groupContainer, wrapper);
-                 wrapper.remove();
-              }
-              
-              if (!isSelf) {
-                const myNicknameEl = document.querySelector('aside span.font-medium');
-                const myNickname = myNicknameEl ? myNicknameEl.innerText.trim().toLowerCase() : '';
-                const hasMention = Array.from(bubble.querySelectorAll('[data-mention]')).some(el => {
-                  const m = el.dataset.mention;
-                  return m === 'everyone' || m === myNickname;
-                });
-                
-                if (hasMention && window.Notification && Notification.permission === "granted") {
-                  new Notification("New mention from " + nickname, { body: safeContent.replace(/<[^>]*>?/gm, '') });
-                }
-                
-                if (hasMention && window.playProminentDing) {
-                  window.playProminentDing();
-                } else if (!hasMention && window.playSubtlePop) {
-                  window.playSubtlePop();
-                }
-              }
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-              shouldScroll = true;
-            }
-          });
-        }
-        if (shouldScroll) {
-          setTimeout(scrollToBottom, 50); 
-        }
-      });
-      observer.observe(messages, { childList: true });
+    // Process server injected HTMX scripts
+    document.body.addEventListener('htmx:sseMessage', function(e) {
+      setTimeout(scrollToBottom, 50);
+      
+      // Look for any notification triggers in new messages
+      if (e.detail && e.detail.elt) {
+        const added = e.detail.elt;
+        // Simple client side mention check
+        const myNicknameEl = document.querySelector('aside span.font-medium');
+        const myNickname = myNicknameEl ? myNicknameEl.innerText.trim().toLowerCase() : '';
+      }
+    });
+
+    // Handle generic new elements added natively by HTMX swapping
+    const observer = new MutationObserver(() => setTimeout(scrollToBottom, 50));
+    if (messages) observer.observe(messages, { childList: true });
     
     // Auto-resize textarea
     const textarea = document.querySelector('textarea');
@@ -445,10 +391,18 @@ const roomMessages = await db
           }
         }
         
-        if (e.key === 'Enter' && !e.shiftKey && !inMentionMode) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          if (inMentionMode && dropdown.style.display !== 'none') {
+            e.preventDefault();
+            const items = dropdown.children;
+            const selectedName = items[selectionIndex].dataset.name;
+            insertMention(selectedName);
+            return;
+          }
+          
           e.preventDefault();
-          mentionTextarea.form.dispatchEvent(new Event('submit', {cancelable: true}));
-          mentionTextarea.form.submit();
+          // Let htmx know we want to fire the post payload natively via htmx AJAX
+          mentionTextarea.form.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
         }
       });
       
