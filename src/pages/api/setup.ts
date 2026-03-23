@@ -1,5 +1,7 @@
 import pkg from 'pg';
 const { Client } = pkg;
+import dns from 'node:dns';
+dns.setDefaultResultOrder('ipv4first');
 
 export async function GET(context) {
   if (!process.env.DATABASE_URL) {

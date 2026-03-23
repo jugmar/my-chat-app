@@ -1,6 +1,9 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pkg from 'pg';
 const { Pool } = pkg;
+import dns from 'node:dns';
+dns.setDefaultResultOrder('ipv4first');
+const { Pool } = pkg;
 import * as schema from './schema';
 
 const pool = new Pool({
