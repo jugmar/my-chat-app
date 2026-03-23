@@ -52,7 +52,7 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
       };
       
       setTimeout(broadcastPresence, 100);
-      const heartbeat = setInterval(() => sendEvent('ping', ''), 30000);
+      const heartbeat = setInterval(() => sendEvent('ping', ''), 15000);
 
       const roomEventName = `room:${roomId}:message`;
       const onMessage = (htmlPayload: string) => sendEvent('message', htmlPayload);

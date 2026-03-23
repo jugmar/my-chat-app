@@ -71,7 +71,7 @@ const roomMessages = await db
     </aside>
 
     <!-- Main Chat Area -->
-    <main class="flex-1 flex flex-col bg-slate-800 relative z-0">
+    <main class="flex-1 flex flex-col bg-slate-800 relative z-0" hx-ext="sse" sse-connect={`/api/rooms/${currentRoom.id}/events`}>
       <header class="h-14 border-b border-slate-700 flex items-center px-4 bg-slate-900/50 backdrop-blur justify-between z-10 shrink-0">
         <div class="flex items-center gap-3">
           <button class="md:hidden text-slate-400 hover:text-white text-xl">☰</button>
@@ -93,7 +93,7 @@ const roomMessages = await db
             <svg class="w-6 h-6 text-slate-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
           </div>
           
-          <div hx-ext="sse" sse-connect={`/api/rooms/${currentRoom.id}/events`}>
+          <div>
             <div class="flex items-center gap-2 text-sm text-emerald-400 font-medium bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shadow-sm" sse-swap="presence">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               1 Online
@@ -102,7 +102,7 @@ const roomMessages = await db
         </div>
       </header>
 
-      <div hx-ext="sse" sse-connect={`/api/rooms/${currentRoom.id}/events`} class="flex-1 overflow-hidden relative">
+      <div class="flex-1 overflow-hidden relative">
         <div class="absolute inset-0 overflow-y-auto p-4 flex flex-col gap-3 pb-8" id="chat-messages" sse-swap="message" hx-swap="beforeend">
           {roomMessages.length > 0 && (
             <div id="history-loader" hx-get={`/api/rooms/${currentRoom.id}/history?before=${roomMessages[0].createdAt.getTime()}`} hx-trigger="intersect once" hx-swap="outerHTML" class="py-2 text-center text-xs text-slate-500">
@@ -127,7 +127,7 @@ const roomMessages = await db
       <div class="p-4 bg-slate-900 border-t border-slate-700 shrink-0 z-10 relative" id="chat-input-container" data-room-id={currentRoom.id}>
         
         <!-- Typing indicator container -->
-        <div hx-ext="sse" sse-connect={`/api/rooms/${currentRoom.id}/events`} class="absolute -top-8 left-4 h-8 flex items-center">
+        <div class="absolute -top-8 left-4 h-8 flex items-center">
           <div sse-swap="typing" hx-swap="innerHTML"></div>
         </div>
         
