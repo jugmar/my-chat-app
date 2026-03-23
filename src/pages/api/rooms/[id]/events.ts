@@ -15,7 +15,10 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
     async start(controller) {
       const encoder = new TextEncoder();
       const sendEvent = (event: string, data: string) => {
-        try { controller.enqueue(encoder.encode(`event: ${event}\ndata: ${data}\n\n`)); } catch(e) {}
+        try {
+          const dataLines = data.split('\n').map(line => `data: ${line}`).join('\n');
+          controller.enqueue(encoder.encode(`event: ${event}\n${dataLines}\n\n`));
+        } catch(e) {}
       };
 
       const userId = cookies.get('userId')?.value;
