@@ -118,7 +118,7 @@ const roomMessages = await db
               ) : (
                 <>
                   {msg.userId !== user.id && (
-                    <div class={`msg-avatar-${msg.userId} w-8 h-8 rounded-full ${getUserColor(msg.userId)} flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1`}>
+                    <div class={`msg-avatar-${msg.userId} w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1`} style={`background-color: ${getUserColor(msg.userId)}`}>
                       {msg.nickname ? msg.nickname.charAt(0).toUpperCase() : '?'}
                     </div>
                   )}

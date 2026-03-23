@@ -82,7 +82,7 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
 
       const htmlSnippet = `
 <div class="flex message-item w-full mb-4 justify-start msg-wrapper-${userId} animate-fade-in-up" data-msg-user-id="${userId}">
-  <div class="msg-avatar-${userId} w-8 h-8 rounded-full ${color} flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1">
+  <div class="msg-avatar-${userId} w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1" style="background-color: ${color}">
     ${initial}
   </div>
   <div class="flex flex-col msg-bubble-container-${userId} items-start max-w-[75%]">

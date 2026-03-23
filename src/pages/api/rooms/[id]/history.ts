@@ -62,7 +62,7 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
       htmlSnippet += `
         <div class="flex message-item w-full mb-4 msg-wrapper-${msg.userId} ${isSelf ? 'justify-end' : 'justify-start'}" data-msg-user-id="${msg.userId}">
           ${!isSelf ? `
-          <div class="msg-avatar-${msg.userId} w-8 h-8 rounded-full ${color} flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1">
+          <div class="msg-avatar-${msg.userId} w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1" style="background-color: ${color}">
             ${initial}
           </div>` : ''}
           <div class="flex flex-col msg-bubble-container-${msg.userId} ${isSelf ? 'items-end' : 'items-start'} max-w-[75%]">
