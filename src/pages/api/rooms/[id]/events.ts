@@ -30,11 +30,22 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
       if (userId) roomUsers[roomId].set(userId, nickname);
       
       const broadcastPresence = () => {
-        const count = roomUsers[roomId]?.size || 0;
+        const usersMap = roomUsers[roomId] || new Map();
+        const count = usersMap.size;
+        const names = Array.from(usersMap.values());
+        const namesHtml = names.map(n => `<div class="px-2 py-1 hover:bg-slate-700 rounded transition">${n}</div>`).join('');
+        
         const html = `
-          <div class="flex items-center gap-2 text-sm text-emerald-400 font-medium bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shadow-sm">
+          <div class="group relative flex items-center gap-2 text-sm text-emerald-400 font-medium bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shadow-sm cursor-help">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             ${count} Online
+            
+            <div class="absolute top-full right-0 mt-2 w-max min-w-[140px] bg-slate-800 border border-slate-600 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden text-slate-200 text-sm">
+              <div class="px-3 py-2 bg-slate-900 border-b border-slate-700 text-xs text-slate-400 font-bold uppercase tracking-wider text-left">Active Users</div>
+              <div class="p-1 max-h-48 overflow-y-auto">
+                ${namesHtml}
+              </div>
+            </div>
           </div>
         `;
         chatEmitter.emit(`room:${roomId}:presence`, html.replace(/\n\s+/g, ' '));
