@@ -6,6 +6,7 @@ async function run() {
     return;
   }
   const sql = postgres(process.env.DATABASE_URL);
+  try {
     await sql.unsafe(`
       CREATE TABLE IF NOT EXISTS users (
         id text PRIMARY KEY,
