@@ -70,8 +70,7 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
               ${!isSelf ? `<div class="text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname msg-nickname-${msg.userId}">${nickname}</div>` : ''}
               <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">${safeContent}</div>
             </div>
-            <div class="text-[10px] text-slate-500 mt-1 opacity-70 px-1">
-              ${timeStr}
+            <div class="text-[10px] text-slate-500 mt-1 opacity-70 px-1 msg-time msg-time-${msg.userId} tracking-tight" data-time="${msg.createdAt.toISOString()}">
             </div>
           </div>
         </div>

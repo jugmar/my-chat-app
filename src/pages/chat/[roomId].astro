@@ -131,7 +131,7 @@ const roomMessages = await db
                       {msg.userId !== user.id && <div class={`text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname msg-nickname-${msg.userId}`}>{msg.nickname}</div>}
                       <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">{msg.content}</div>
                     </div>
-                    <div class="text-[10px] text-slate-500 mt-1 opacity-70 px-1">
+                    <div class={`text-[10px] text-slate-500 mt-1 opacity-70 px-1 msg-time ${msg.userId === user.id ? 'text-right tracking-tight' : 'text-left tracking-tight'}`} data-time={msg.createdAt.toISOString()}>
                       {msg.createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </div>
                   </div>
@@ -172,7 +172,7 @@ const roomMessages = await db
     </main>
   </div>
   
-  <style define:vars={{ uid: user.id }}>
+    <style define:vars={{ uid: user.id }}>
     .msg-wrapper-var { justify-content: flex-end !important; }
     .msg-bubble-container-var { align-items: flex-end !important; }
     .msg-bubble-var { 
@@ -183,6 +183,7 @@ const roomMessages = await db
     }
     .msg-nickname-var { display: none !important; }
     .msg-avatar-var { display: none !important; }
+    .msg-time-var { text-align: right !important; }
   </style>
 
   <script is:inline define:vars={{ uid: user.id }}>
@@ -195,6 +196,7 @@ const roomMessages = await db
       .msg-bubble-${uid} { background-color: #2563eb !important; color: white !important; border-bottom-left-radius: 1rem !important; border-bottom-right-radius: 0.125rem !important; border:none !important; }
       .msg-nickname-${uid} { display: none !important; }
       .msg-avatar-${uid} { display: none !important; }
+      .msg-time-${uid} { text-align: right !important; }
     `;
     document.head.appendChild(style);
 
@@ -219,7 +221,10 @@ const roomMessages = await db
     });
 
     // Handle generic new elements added natively by HTMX swapping
-    const observer = new MutationObserver(() => setTimeout(scrollToBottom, 50));
+    const observer = new MutationObserver(() => {
+      setTimeout(scrollToBottom, 50);
+      updateTimestamps();
+    });
     if (messages) observer.observe(messages, { childList: true });
     
     // Auto-resize textarea
@@ -234,7 +239,37 @@ const roomMessages = await db
     // Process server injected HTMX scripts
     document.body.addEventListener('htmx:sseMessage', function(e) {
       setTimeout(scrollToBottom, 50);
+      updateTimestamps();
     });
+
+    // --- Relative Timestamps ---
+    function updateTimestamps() {
+      const now = new Date();
+      document.querySelectorAll('.msg-time[data-time]').forEach(el => {
+        const time = new Date(el.dataset.time);
+        const diffMs = now - time;
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+        
+        let text = '';
+        if (diffSec < 60) text = 'just now';
+        else if (diffMin < 60) text = `${diffMin} min ago`;
+        else if (diffHour < 24) {
+          const remainingMin = diffMin % 60;
+          text = remainingMin > 0 ? `${diffHour}h ${remainingMin}m ago` : `${diffHour}h ago`;
+        } else {
+          text = `${diffDay}d ago`;
+        }
+        
+        if (el.innerText !== text) {
+          el.innerText = text;
+        }
+      });
+    }
+    setInterval(updateTimestamps, 30000); // 30 seconds
+    updateTimestamps();
 
     // --- Audio Context and Sound Effects ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();

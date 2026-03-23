@@ -77,7 +77,6 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
 
 // ... (in the backend request logic)
       const color = getUserColor(userId);
-      const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       const initial = nickname.charAt(0).toUpperCase();
 
       const htmlSnippet = `
@@ -90,8 +89,8 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
       <div class="text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname msg-nickname-${userId}">${nickname}</div>
       <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">${safeContent}</div>
     </div>
-    <div class="text-[10px] text-slate-500 mt-1 opacity-70 px-1">
-      ${timeStr}
+    <div class="text-[10px] text-slate-500 mt-1 opacity-70 px-1 msg-time msg-time-${userId} tracking-tight" data-time="${now.toISOString()}">
+      just now
     </div>
   </div>
 </div>`;
