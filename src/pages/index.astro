@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db';
 import { users } from '../db/schema';
+import { eq } from 'drizzle-orm';
 
 const errorMsg = Astro.url.searchParams.get('error');
 
@@ -18,14 +19,22 @@ if (Astro.request.method === 'POST') {
   }
   
   if (nickname && nickname.trim() !== '') {
-    const id = uuidv4();
     try {
-      await db.insert(users).values({
-        id,
-        nickname,
-        lastSeen: new Date(),
-        createdAt: new Date(),
-      });
+      const existingUsers = await db.select().from(users).where(eq(users.nickname, nickname.trim())).limit(1);
+      let id = '';
+
+      if (existingUsers.length > 0) {
+        id = existingUsers[0].id;
+        await db.update(users).set({ lastSeen: new Date() }).where(eq(users.id, id));
+      } else {
+        id = uuidv4();
+        await db.insert(users).values({
+          id,
+          nickname: nickname.trim(),
+          lastSeen: new Date(),
+          createdAt: new Date(),
+        });
+      }
       
       Astro.cookies.set('userId', id, { path: '/', httpOnly: true, sameSite: 'lax' });
       if (masterPassword) {
