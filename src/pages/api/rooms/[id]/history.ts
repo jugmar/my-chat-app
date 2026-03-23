@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { db } from '../../../../db';
 import { messages, users } from '../../../../db/schema';
 import { eq, desc, and, lt } from 'drizzle-orm';
+import { getUserColor } from '../../../../lib/color';
 
 export const GET: APIRoute = async ({ params, request, cookies }) => {
   const roomId = params.id;
@@ -39,16 +40,11 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
 
   const escapeHtml = (unsafe: string) => unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  let currentGroupId: string | null = null;
-  let currentGroupHtml = '';
-
   for (const msg of historyMsgs) {
     if (msg.isSystemMessage) {
-      if (currentGroupHtml) { htmlSnippet += currentGroupHtml + '</div></div>'; currentGroupHtml = '';  currentGroupId = null; }
-      
       const safeContent = escapeHtml(msg.content);
       htmlSnippet += `
-        <div class="flex flex-col mb-4 items-center group-container" data-is-system="true">
+        <div class="flex flex-col message-item items-center" data-is-system="true">
           <div class="text-xs text-slate-400 italic my-2 bg-slate-900/40 border border-slate-700/50 px-4 py-1.5 rounded-full shadow-sm backdrop-blur-sm">${safeContent}</div>
         </div>
       `;
@@ -58,44 +54,33 @@ export const GET: APIRoute = async ({ params, request, cookies }) => {
         return `<span class="text-amber-400 font-bold bg-amber-500/10 px-1 rounded-sm" data-mention="${uname.toLowerCase()}">${match}</span>`;
       });
       
-      if (currentGroupId !== msg.userId) {
-         if (currentGroupHtml) { htmlSnippet += currentGroupHtml + '</div></div>'; }
-         
-         const alignment = isSelf ? 'items-end' : 'items-start';
-         const headerAlign = isSelf ? 'flex-row-reverse pr-1' : 'pl-1';
-         const timeStr = new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-         const initial = msg.nickname ? msg.nickname.charAt(0).toUpperCase() : '?';
+      const timeStr = new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const nickname = msg.nickname || 'Unknown';
+      const initial = nickname.charAt(0).toUpperCase();
+      const color = getUserColor(msg.userId);
 
-         currentGroupHtml = `
-           <div class="flex flex-col mb-4 group-container ${alignment}" data-msg-user-id="${msg.userId}" data-is-system="false">
-             <div class="flex items-center gap-2 mb-1 ${headerAlign} header-info">
-               <div class="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-xs text-white font-bold">${initial}</div>
-               <span class="text-xs font-semibold ${isSelf ? 'text-slate-300' : 'text-blue-300'} msg-nickname">${msg.nickname || 'Unknown'}</span>
-               <span class="text-[10px] text-slate-500">${timeStr}</span>
-             </div>
-             <div class="flex flex-col gap-1 bubble-container ${isSelf ? 'items-end' : 'items-start'}">
-         `;
-         currentGroupId = msg.userId;
-      }
-      
-      const bubbleClass = isSelf ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-slate-700 text-slate-100 border border-slate-600 rounded-tl-sm';
-      
-      currentGroupHtml += `
-        <div class="w-fit max-w-[85%] md:max-w-[75%] px-4 py-2 shadow-sm rounded-2xl ${bubbleClass} message-content relative group">
-          <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">${safeContent}</div>
+      htmlSnippet += `
+        <div class="flex message-item w-full mb-4 msg-wrapper-${msg.userId} ${isSelf ? 'justify-end' : 'justify-start'}" data-msg-user-id="${msg.userId}">
+          ${!isSelf ? `
+          <div class="msg-avatar-${msg.userId} w-8 h-8 rounded-full ${color} flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1">
+            ${initial}
+          </div>` : ''}
+          <div class="flex flex-col msg-bubble-container-${msg.userId} ${isSelf ? 'items-end' : 'items-start'} max-w-[75%]">
+            <div class="rounded-2xl px-4 py-2.5 shadow-sm msg-bubble-${msg.userId} ${isSelf ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-slate-700 text-slate-100 rounded-bl-sm border border-slate-600'}">
+              ${!isSelf ? `<div class="text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname msg-nickname-${msg.userId}">${nickname}</div>` : ''}
+              <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">${safeContent}</div>
+            </div>
+            <div class="text-[10px] text-slate-500 mt-1 opacity-70 px-1">
+              ${timeStr}
+            </div>
+          </div>
         </div>
       `;
     }
   }
 
-  if (currentGroupHtml) { htmlSnippet += currentGroupHtml + '</div></div>'; }
-
   if (historyMsgs.length < limit) {
-    if (htmlSnippet === '') {
-      htmlSnippet = '<div class="py-4 text-center text-xs text-slate-500 w-full mb-auto mt-8">Beginning of room history.</div>';
-    } else {
-      htmlSnippet = '<div class="py-4 text-center text-xs text-slate-500 w-full mb-auto mt-8">Beginning of room history.</div>' + htmlSnippet;
-    }
+    htmlSnippet = '<div class="py-4 text-center text-xs text-slate-500 w-full mb-auto mt-8">Beginning of room history.</div>' + htmlSnippet;
   } else {
     const newOldest = historyMsgs[0];
     htmlSnippet = `<div id="history-loader" hx-get="/api/rooms/${roomId}/history?before=${newOldest.createdAt.getTime()}" hx-trigger="intersect once" hx-swap="outerHTML" class="py-2 text-center text-xs text-slate-500">Loading older messages...</div>` + htmlSnippet;

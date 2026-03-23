@@ -4,6 +4,8 @@ import { db } from '../../db';
 import { rooms, users, messages } from '../../db/schema';
 import { eq, asc } from 'drizzle-orm';
 
+import { getUserColor } from '../../lib/color';
+
 const userId = Astro.cookies.get('userId')?.value;
 if (!userId) {
   return Astro.redirect('/');
@@ -110,14 +112,26 @@ const roomMessages = await db
             </div>
           )}
           {roomMessages.map((msg) => (
-            <div class={`flex flex-col message-item ${msg.userId === user.id ? 'items-end' : 'items-start'}`} data-msg-user-id={msg.userId}>
+            <div class={`flex message-item w-full mb-4 msg-wrapper-${msg.userId} ${msg.userId === user.id ? 'justify-end' : 'justify-start'}`} data-msg-user-id={msg.userId}>
               {msg.isSystemMessage ? (
                 <div class="text-xs text-slate-400 italic my-2 bg-slate-900/40 border border-slate-700/50 px-4 py-1.5 rounded-full mx-auto shadow-sm backdrop-blur-sm">{msg.content}</div>
               ) : (
-                <div class={`max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm ${msg.userId === user.id ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-slate-700 text-slate-100 rounded-bl-sm border border-slate-600'}`}>
-                  {msg.userId !== user.id && <div class="text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname">{msg.nickname}</div>}
-                  <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">{msg.content}</div>
-                </div>
+                <>
+                  {msg.userId !== user.id && (
+                    <div class={`msg-avatar-${msg.userId} w-8 h-8 rounded-full ${getUserColor(msg.userId)} flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1`}>
+                      {msg.nickname ? msg.nickname.charAt(0).toUpperCase() : '?'}
+                    </div>
+                  )}
+                  <div class={`flex flex-col msg-bubble-container-${msg.userId} ${msg.userId === user.id ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                    <div class={`rounded-2xl px-4 py-2.5 shadow-sm msg-bubble-${msg.userId} ${msg.userId === user.id ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-slate-700 text-slate-100 rounded-bl-sm border border-slate-600'}`}>
+                      {msg.userId !== user.id && <div class={`text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname msg-nickname-${msg.userId}`}>{msg.nickname}</div>}
+                      <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">{msg.content}</div>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1 opacity-70 px-1">
+                      {msg.createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           ))}
@@ -155,7 +169,8 @@ const roomMessages = await db
   </div>
   
   <style define:vars={{ uid: user.id }}>
-    .msg-wrapper-var { align-items: flex-end !important; }
+    .msg-wrapper-var { justify-content: flex-end !important; }
+    .msg-bubble-container-var { align-items: flex-end !important; }
     .msg-bubble-var { 
       background-color: #2563eb !important; 
       color: white !important; 
@@ -163,6 +178,7 @@ const roomMessages = await db
       border-radius: 1rem 1rem 0 1rem !important; 
     }
     .msg-nickname-var { display: none !important; }
+    .msg-avatar-var { display: none !important; }
   </style>
 
   <script is:inline define:vars={{ uid: user.id }}>
@@ -170,9 +186,11 @@ const roomMessages = await db
     // Instead of using complex build strings, we just manually inject a stylesheet.
     const style = document.createElement('style');
     style.innerHTML = `
-      .msg-wrapper-${uid} { align-items: flex-end !important; }
+      .msg-wrapper-${uid} { justify-content: flex-end !important; }
+      .msg-bubble-container-${uid} { align-items: flex-end !important; }
       .msg-bubble-${uid} { background-color: #2563eb !important; color: white !important; border-bottom-left-radius: 1rem !important; border-bottom-right-radius: 0.125rem !important; border:none !important; }
       .msg-nickname-${uid} { display: none !important; }
+      .msg-avatar-${uid} { display: none !important; }
     `;
     document.head.appendChild(style);
 

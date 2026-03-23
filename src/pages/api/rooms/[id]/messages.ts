@@ -74,14 +74,26 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
         chatEmitter.emit(`user:${targetUserId}:notification`, '{}');
       }
 
+import { getUserColor } from '../../../../lib/color';
+
+// ... (in the backend request logic)
+      const color = getUserColor(userId);
       const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
       const initial = nickname.charAt(0).toUpperCase();
 
       const htmlSnippet = `
-<div class="flex flex-col message-item items-start msg-wrapper-${userId} animate-fade-in-up" data-msg-user-id="${userId}">
-  <div class="max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm bg-slate-700 text-slate-100 rounded-bl-sm border border-slate-600 msg-bubble-${userId}">
-    <div class="text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname msg-nickname-${userId}">${nickname}</div>
-    <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">${safeContent}</div>
+<div class="flex message-item w-full mb-4 justify-start msg-wrapper-${userId} animate-fade-in-up" data-msg-user-id="${userId}">
+  <div class="msg-avatar-${userId} w-8 h-8 rounded-full ${color} flex items-center justify-center text-white font-bold text-xs shrink-0 mr-2 mt-auto shadow-sm mb-1">
+    ${initial}
+  </div>
+  <div class="flex flex-col msg-bubble-container-${userId} items-start max-w-[75%]">
+    <div class="rounded-2xl px-4 py-2.5 shadow-sm bg-slate-700 text-slate-100 rounded-bl-sm border border-slate-600 msg-bubble-${userId}">
+      <div class="text-xs text-blue-300 mb-1 font-semibold tracking-wide msg-nickname msg-nickname-${userId}">${nickname}</div>
+      <div class="break-words whitespace-pre-wrap leading-relaxed space-y-2">${safeContent}</div>
+    </div>
+    <div class="text-[10px] text-slate-500 mt-1 opacity-70 px-1">
+      ${timeStr}
+    </div>
   </div>
 </div>`;
 
