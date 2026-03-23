@@ -1,9 +1,12 @@
 import { EventEmitter } from 'node:events';
 
-// Create a singleton instance of EventEmitter for the application
-const emitter = new EventEmitter();
+// Attach to globalThis to ensure exactly one instance exists 
+// even if Vite bundles this file into multiple chunk endpoints.
+const globalState = globalThis as unknown as { _chatAppEmitter: EventEmitter };
 
-// Increase MaxListeners to avoid memory leak warnings when many clients connect
-emitter.setMaxListeners(100);
+if (!globalState._chatAppEmitter) {
+  globalState._chatAppEmitter = new EventEmitter();
+  globalState._chatAppEmitter.setMaxListeners(100);
+}
 
-export const chatEmitter = emitter;
+export const chatEmitter = globalState._chatAppEmitter;
