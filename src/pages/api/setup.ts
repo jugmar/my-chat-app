@@ -1,29 +1,27 @@
-import postgres from 'postgres';
+import pkg from 'pg';
+const { Client } = pkg;
 
 export async function GET(context) {
   if (!process.env.DATABASE_URL) {
     return new Response(JSON.stringify({ error: "No DATABASE_URL found" }), { status: 500 });
   }
 
-  const sql = postgres(process.env.DATABASE_URL);
+  const client = new Client({ connectionString: process.env.DATABASE_URL });
   
   try {
-    await sql.unsafe(`
+    await client.connect();
+    await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id text PRIMARY KEY,
         nickname text NOT NULL UNIQUE,
         last_seen timestamp NOT NULL,
         created_at timestamp NOT NULL
       );
-    `);
-    await sql.unsafe(`
       CREATE TABLE IF NOT EXISTS rooms (
         id text PRIMARY KEY,
         name text NOT NULL,
         created_at timestamp NOT NULL
       );
-    `);
-    await sql.unsafe(`
       CREATE TABLE IF NOT EXISTS messages (
         id text PRIMARY KEY,
         room_id text NOT NULL,
@@ -32,8 +30,6 @@ export async function GET(context) {
         is_system_message boolean DEFAULT false,
         created_at timestamp NOT NULL
       );
-    `);
-    await sql.unsafe(`
       CREATE TABLE IF NOT EXISTS notifications (
         id text PRIMARY KEY,
         user_id text NOT NULL,
@@ -44,14 +40,16 @@ export async function GET(context) {
         created_at timestamp NOT NULL
       );
     `);
+
     try {
-      await sql.unsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen timestamp NOT NULL DEFAULT now();`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen timestamp NOT NULL DEFAULT now();`);
     } catch(e) {}
     
-    await sql.end();
+    await client.end();
     return new Response(JSON.stringify({ success: "Postgres Tables Created Successfully! You can now use the app." }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch(e: any) {
-    await sql.end();
+    await client.end();
     return new Response(JSON.stringify({ error: e.message || String(e), stack: e.stack }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
+
