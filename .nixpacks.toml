@@ -5,4 +5,4 @@ nixPkgs = ["nodejs_22"]
 cmds = ["npm install", "npm run build"]
 
 [phases.start]
-cmd = "node migrate.js && npm run start"
+cmd = "npx drizzle-kit push --force && npm run start"
