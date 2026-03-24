@@ -10,6 +10,7 @@ export const users = pgTable('users', {
 export const rooms = pgTable('rooms', {
   id: text('id').primaryKey(),
   name: text('name').notNull().unique(),
+  password: text('password'),
   createdAt: timestamp('created_at').notNull(),
 });
 

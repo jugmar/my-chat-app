@@ -1,18 +1,25 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../../db';
-import { messages, users } from '../../../../db/schema';
+import { messages, users, rooms } from '../../../../db/schema';
 import { eq, desc, and, lt } from 'drizzle-orm';
 import { getUserColor } from '../../../../lib/color';
 
 export const GET: APIRoute = async ({ params, request, cookies }) => {
   const roomId = params.id;
-  const url = new URL(request.url);
-  const beforeParam = url.searchParams.get('before');
-
-  if (!roomId) return new Response(null, { status: 400 });
+  if (!roomId) return new Response('Bad Request', { status: 400 });
 
   const userId = cookies.get('userId')?.value;
-  if (!userId) return new Response(null, { status: 401 });
+  if (!userId) return new Response('Unauthorized', { status: 401 });
+
+  // Vault Protocol Checks
+  const targetRoom = await db.select().from(rooms).where(eq(rooms.id, roomId)).limit(1);
+  if (targetRoom.length === 0) return new Response('Not Found', { status: 404 });
+  if (targetRoom[0].password && cookies.get(`room_auth_${roomId}`)?.value !== 'true') {
+    return new Response('Vault Access Denied', { status: 401 });
+  }
+
+  const url = new URL(request.url);
+  const beforeParam = url.searchParams.get('before');
 
   const conditions = [eq(messages.roomId, roomId)];
   if (beforeParam) {

@@ -1,17 +1,25 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../../db';
-import { users } from '../../../../db/schema';
+import { users, rooms } from '../../../../db/schema';
 import { chatEmitter } from '../../../../lib/emitter';
 import { eq } from 'drizzle-orm';
 
-export const POST: APIRoute = async ({ params, request, cookies }) => {
+export const POST: APIRoute = async ({ params, cookies }) => {
   const roomId = params.id;
-  if (!roomId) return new Response(null, { status: 400 });
+  if (!roomId) return new Response('Bad Request', { status: 400 });
 
   const userId = cookies.get('userId')?.value;
-  if (!userId) return new Response(null, { status: 401 });
+  if (!userId) return new Response('Unauthorized', { status: 401 });
+
+  // Vault Protocol Checks
+  const targetRoom = await db.select().from(rooms).where(eq(rooms.id, roomId)).limit(1);
+  if (targetRoom.length === 0) return new Response('Not Found', { status: 404 });
+  if (targetRoom[0].password && cookies.get(`room_auth_${roomId}`)?.value !== 'true') {
+    return new Response('Vault Access Denied', { status: 401 });
+  }
 
   try {
+    // Get nickname from DB
     const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     const nickname = userRows.length > 0 ? userRows[0].nickname : 'Someone';
 

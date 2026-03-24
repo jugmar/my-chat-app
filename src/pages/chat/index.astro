@@ -72,6 +72,8 @@ if (allRooms.length === 0) {
         <form method="POST" action="/api/rooms/create" class="flex flex-col gap-3 px-2">
           <input type="text" name="name" placeholder="Name your channel..." required
                  class="w-full bg-slate-800/80 border border-slate-600 rounded-2xl px-5 py-4 text-base text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none transition placeholder-slate-500 shadow-sm" />
+          <input type="password" name="password" placeholder="Room Password (Optional)..."
+                 class="w-full bg-slate-800/80 border border-slate-600 rounded-2xl px-5 py-4 text-base text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none transition placeholder-slate-500 shadow-sm" />
           <button type="submit" class="bg-blue-600 hover:bg-blue-500 rounded-2xl px-5 py-4 text-base font-bold transition shadow-lg w-full active:scale-[0.98] tracking-wide flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
             Create & Join
