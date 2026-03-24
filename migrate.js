@@ -1,16 +1,14 @@
-import pkg from 'pg';
-const { Client } = pkg;
+import postgres from 'postgres';
 
 async function run() {
-  const client = new Client({ connectionString: process.env.DATABASE_URL });
-  await client.connect();
+  const sql = postgres(process.env.DATABASE_URL, { prepare: false });
   try {
-    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen timestamp NOT NULL DEFAULT now()`);
-    console.log('Migration successful');
+    await sql`ALTER TABLE rooms ADD COLUMN IF NOT EXISTS password text;`;
+    console.log('Migration successful: password column ensured explicitly bypasses Drizzle-kit prompt constraints');
   } catch (e) {
     console.error('Migration error:', e);
   } finally {
-    await client.end();
+    await sql.end();
   }
 }
 run();
